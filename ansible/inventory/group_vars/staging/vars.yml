@@ -9,7 +9,6 @@
 app_env: staging
 
 # --- Backend ---
-backend_app_name: guitar0-backend
 backend_app_port: 8000
 backend_db_docker_port: 5433
 
@@ -27,7 +26,6 @@ backend_nginx_domains:
         rate_limit: api_limit
 
 # --- Frontend ---
-frontend_app_name: guitar0-frontend
 frontend_app_port: 3000
 frontend_api_url: api.staging.guitar0.net
 
