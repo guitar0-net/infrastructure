@@ -23,16 +23,20 @@
 - name: Backup database via Docker exec
   when: backend_db_container is defined and not backend_db_container.failed
   ansible.builtin.shell: |
+    set -o pipefail
     docker exec {{ backend_app_name }}-db-1 pg_dump -U {{ backend_db_user }} {{ backend_db_name }} | gzip > {{ backend_backup_path }}
   args:
     creates: "{{ backend_backup_path }}"
+    executable: /bin/bash
 
 - name: Backup database via direct connection
   when: backend_db_container is not defined or backend_db_container.failed
   ansible.builtin.shell: |
+    set -o pipefail
     pg_dump -h {{ backend_db_host | default('localhost') }} -U {{ backend_db_user }} {{ backend_db_name }} | gzip > {{ backend_backup_path }}
   args:
     creates: "{{ backend_backup_path }}"
+    executable: /bin/bash
   environment:
     PGPASSWORD: "{{ backend_db_password }}"
 

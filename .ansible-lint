@@ -13,3 +13,8 @@ exclude_paths:
 # Rules that are useful to see but shouldn't block CI
 warn_list:
   - experimental
+
+# firewall_allowed_ports, fail2ban_* in common/defaults are intentionally
+# unprefixed — they are public API meant to be overridden from group_vars
+skip_list:
+  - var-naming[no-role-prefix]

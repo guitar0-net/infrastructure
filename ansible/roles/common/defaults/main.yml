@@ -4,7 +4,7 @@
 
 ---
 # Docker
-docker_network: guitar0-network
+common_docker_network: guitar0-network
 
 # UFW — overridable per environment in group_vars
 firewall_allowed_ports:

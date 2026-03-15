@@ -7,7 +7,7 @@
 monitoring_dir: /opt/guitar0-monitoring
 
 # Grafana
-grafana_port: 3000
+monitoring_grafana_port: 3000
 
 # Dashboards to deploy (filenames from observability/grafana/provisioning/dashboards/)
 monitoring_grafana_dashboards:

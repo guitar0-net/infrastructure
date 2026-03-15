@@ -50,10 +50,13 @@ jobs:
         run: echo "dummy" > ansible/.vault_pass
 
       - name: Syntax check playbooks
-        run: find ansible/playbooks -name '*.yml' -exec ansible-playbook --syntax-check {} \;
+        working-directory: ansible
+        run: find playbooks -name '*.yml' -exec ansible-playbook --syntax-check {} \;
 
       - name: Run yamllint
-        run: yamllint ansible/
+        working-directory: ansible
+        run: yamllint .
 
       - name: Run ansible-lint
-        run: ansible-lint ansible/playbooks/
+        working-directory: ansible
+        run: ansible-lint playbooks/

@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+---
 # Server-level variables shared across all roles.
 # Service-specific variables live in each role's defaults/main.yml
 # and are overridden per environment in group_vars/<env>/vars.yml

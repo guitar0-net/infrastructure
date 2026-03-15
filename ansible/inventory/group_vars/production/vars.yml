@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+---
 # Production environment — non-secret variables
 # Secrets (passwords, tokens, keys) live in vault.yml
 
@@ -39,4 +40,4 @@ frontend_nginx_domains:
 # --- Monitoring ---
 monitoring_dir: /opt/guitar0-monitoring
 grafana_domain: grafana.guitar0.net
-grafana_port: 3000
+monitoring_grafana_port: 3000

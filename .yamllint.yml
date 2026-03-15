@@ -4,6 +4,9 @@
 
 extends: default
 
+ignore: |
+  inventory/group_vars/*/vault.yml
+
 rules:
   # Ansible tasks often have long module arguments — warn, don't fail
   line-length:
@@ -15,6 +18,12 @@ rules:
   truthy:
     allowed-values: ["true", "false"]
     check-keys: false
+
+  # Required by ansible-lint
+  comments-indentation: false
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
 
   # One space between code and inline comment is enough
   comments:
