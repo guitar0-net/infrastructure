@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Install system packages and Docker
+  ansible.builtin.import_tasks: packages.yml
+  tags: [packages, docker]
+
+- name: Create deploy user and group
+  ansible.builtin.import_tasks: user.yml
+  tags: [user]
+
+- name: Configure UFW firewall
+  ansible.builtin.import_tasks: firewall.yml
+  tags: [firewall]
+
+- name: Configure fail2ban
+  ansible.builtin.import_tasks: fail2ban.yml
+  tags: [fail2ban]
+
+- name: Apply kernel parameters
+  ansible.builtin.import_tasks: sysctl.yml
+  tags: [sysctl]
+
+- name: Install and configure nginx
+  ansible.builtin.import_tasks: nginx.yml
+  tags: [nginx]
+
+- name: Install certbot
+  ansible.builtin.import_tasks: certbot.yml
+  tags: [certbot]
+
+- name: Create Docker network
+  ansible.builtin.import_tasks: docker_network.yml
+  tags: [docker, network]

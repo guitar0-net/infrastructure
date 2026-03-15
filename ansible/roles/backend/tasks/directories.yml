@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Create backend application directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0755"
+  loop:
+    - "{{ backend_app_dir }}"
+    - "{{ backend_shared_dir }}"
+    - "{{ backend_shared_dir }}/staticfiles"
+    - "{{ backend_shared_dir }}/media"
+    - "{{ backend_backup_dir }}"
+    - "{{ backend_log_dir }}"

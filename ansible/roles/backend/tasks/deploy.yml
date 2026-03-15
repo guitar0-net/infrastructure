@@ -1,0 +1,177 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Log deployment start
+  ansible.builtin.lineinfile:
+    path: "{{ backend_log_dir }}/deployments.log"
+    line: "{{ ansible_facts['date_time']['iso8601'] }} - Starting deployment of {{ backend_docker_image }}:{{ backend_docker_tag }}"
+    create: true
+    mode: "0644"
+
+- name: Log in to Docker Hub
+  community.docker.docker_login:
+    username: "{{ lookup('env', 'DOCKERHUB_USERNAME') }}"
+    password: "{{ lookup('env', 'DOCKERHUB_TOKEN') }}"
+  when: lookup('env', 'DOCKERHUB_USERNAME') != ''
+
+- name: Pull Docker image
+  community.docker.docker_image:
+    name: "{{ backend_docker_image }}:{{ backend_docker_tag }}"
+    source: pull
+    force_source: true
+  retries: 3
+  delay: 10
+  register: backend_pull_result
+  until: backend_pull_result is succeeded
+
+- name: Check for current version file
+  ansible.builtin.stat:
+    path: "{{ backend_shared_dir }}/CURRENT_VERSION"
+  register: backend_current_version_stat
+
+- name: Save previous version for rollback
+  when: backend_current_version_stat.stat.exists
+  block:
+    - name: Read current version
+      ansible.builtin.slurp:
+        src: "{{ backend_shared_dir }}/CURRENT_VERSION"
+      register: backend_current_version_file
+
+    - name: Write previous version
+      ansible.builtin.copy:
+        content: "{{ backend_current_version_file.content | b64decode }}"
+        dest: "{{ backend_shared_dir }}/PREVIOUS_VERSION"
+        mode: "0644"
+
+- name: Render docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.prod.j2
+    dest: "{{ backend_shared_dir }}/docker-compose.yml"
+    mode: "0644"
+
+- name: Render .env file
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ backend_shared_dir }}/.env"
+    mode: "0600"
+
+- name: Deploy and verify
+  block:
+    - name: Start database service
+      community.docker.docker_compose_v2:
+        project_src: "{{ backend_shared_dir }}"
+        services:
+          - db
+        state: present
+        pull: never
+
+    - name: Run migrations
+      ansible.builtin.command:
+        cmd: >
+          docker compose -f {{ backend_shared_dir }}/docker-compose.yml
+          run --rm app python manage.py migrate --noinput
+      changed_when: true
+
+    - name: Collect static files
+      ansible.builtin.command:
+        cmd: >
+          docker compose -f {{ backend_shared_dir }}/docker-compose.yml
+          run --rm app python manage.py collectstatic --noinput
+      changed_when: true
+
+    - name: Deploy application with docker compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ backend_shared_dir }}"
+        state: present
+        pull: never
+        recreate: always
+
+    - name: Wait for application to be healthy
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ backend_app_port }}{{ backend_health_check_path }}"
+        status_code: 200
+      register: backend_health_check
+      until: backend_health_check.status == 200
+      retries: "{{ backend_health_check_retries }}"
+      delay: "{{ backend_health_check_delay }}"
+
+    - name: Save current version
+      ansible.builtin.copy:
+        content: "{{ backend_docker_tag }}"
+        dest: "{{ backend_shared_dir }}/CURRENT_VERSION"
+        mode: "0644"
+
+    - name: Log deployment success
+      ansible.builtin.lineinfile:
+        path: "{{ backend_log_dir }}/deployments.log"
+        line: "{{ ansible_facts['date_time']['iso8601'] }} - Successfully deployed {{ backend_docker_image }}:{{ backend_docker_tag }}"
+        create: true
+        mode: "0644"
+
+  rescue:
+    - name: Log deployment failure
+      ansible.builtin.lineinfile:
+        path: "{{ backend_log_dir }}/deployments.log"
+        line: "{{ ansible_facts['date_time']['iso8601'] }} - FAILED deployment of {{ backend_docker_image }}:{{ backend_docker_tag }}"
+        create: true
+        mode: "0644"
+
+    - name: Read previous version for rollback
+      ansible.builtin.slurp:
+        src: "{{ backend_shared_dir }}/PREVIOUS_VERSION"
+      register: backend_rollback_version_file
+      ignore_errors: true
+
+    - name: Rollback to previous version
+      when: backend_rollback_version_file is succeeded
+      block:
+        - name: Set rollback tag
+          ansible.builtin.set_fact:
+            backend_rollback_tag: "{{ backend_rollback_version_file.content | b64decode }}"
+
+        - name: Pull previous image
+          community.docker.docker_image:
+            name: "{{ backend_docker_image }}:{{ backend_rollback_tag }}"
+            source: pull
+            force_source: true
+          retries: 3
+          delay: 10
+          register: backend_rollback_pull
+          until: backend_rollback_pull is succeeded
+
+        - name: Re-render docker-compose with previous tag
+          ansible.builtin.template:
+            src: docker-compose.prod.j2
+            dest: "{{ backend_shared_dir }}/docker-compose.yml"
+            mode: "0644"
+          vars:
+            backend_docker_tag: "{{ backend_rollback_tag }}"
+
+        - name: Start previous version
+          community.docker.docker_compose_v2:
+            project_src: "{{ backend_shared_dir }}"
+            state: present
+            recreate: always
+
+        - name: Restore version file
+          ansible.builtin.copy:
+            content: "{{ backend_rollback_tag }}"
+            dest: "{{ backend_shared_dir }}/CURRENT_VERSION"
+            mode: "0644"
+
+        - name: Log rollback
+          ansible.builtin.lineinfile:
+            path: "{{ backend_log_dir }}/deployments.log"
+            line: "{{ ansible_facts['date_time']['iso8601'] }} - ROLLBACK: Reverted to {{ backend_docker_image }}:{{ backend_rollback_tag }}"
+            create: true
+            mode: "0644"
+
+    - name: Fail the play after rollback
+      ansible.builtin.fail:
+        msg: >
+          Deployment failed.
+          {{ 'Rolled back to ' ~ backend_docker_image ~ ':' ~ backend_rollback_tag
+             if backend_rollback_version_file is succeeded
+             else 'No previous version to roll back to.' }}

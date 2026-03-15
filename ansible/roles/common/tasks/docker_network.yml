@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Create shared Docker network
+  community.docker.docker_network:
+    name: "{{ docker_network }}"
+    state: present

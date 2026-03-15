@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Install nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
+- name: Start and enable nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Deploy shared nginx rate limits config
+  ansible.builtin.copy:
+    content: |
+      # Shared rate limiting zones
+      limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+      limit_req_zone $binary_remote_addr zone=general_limit:10m rate=30r/s;
+    dest: /etc/nginx/conf.d/rate-limits.conf
+    mode: "0644"
+  notify: Reload nginx

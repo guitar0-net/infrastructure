@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Observability configs are the source of truth in observability/
+# This task file copies them to the server.
+
+---
+- name: Copy Prometheus config
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../observability/prometheus/prometheus.yml"
+    dest: "{{ monitoring_dir }}/prometheus/prometheus.yml"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0644"
+
+- name: Copy Prometheus recording rules
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../observability/prometheus/rules/recording.yml"
+    dest: "{{ monitoring_dir }}/prometheus/rules/recording.yml"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0644"
+  notify: Reload prometheus
+
+- name: Copy Prometheus alert rules
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../observability/prometheus/rules/alerts.yml"
+    dest: "{{ monitoring_dir }}/prometheus/rules/alerts.yml"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0644"
+  notify: Reload prometheus
+
+- name: Render Alertmanager config
+  ansible.builtin.template:
+    src: alertmanager-config.j2
+    dest: "{{ monitoring_dir }}/alertmanager/config.yml"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0644"
+  notify: Reload alertmanager
+
+- name: Copy Alloy config
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../observability/alloy/config.alloy"
+    dest: "{{ monitoring_dir }}/alloy/config.alloy"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0644"
+
+- name: Copy Loki config
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../observability/loki/config.yml"
+    dest: "{{ monitoring_dir }}/loki/config.yml"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0644"
+
+- name: Copy Grafana datasources provisioning
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../observability/grafana/provisioning/datasources/datasources.yml"
+    dest: "{{ monitoring_dir }}/grafana/provisioning/datasources/datasources.yml"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0644"
+
+- name: Copy Grafana dashboards provisioning config
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../observability/grafana/provisioning/dashboards/dashboards.yml"
+    dest: "{{ monitoring_dir }}/grafana/provisioning/dashboards/dashboards.yml"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0644"
+
+- name: Copy Grafana dashboards
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../observability/grafana/provisioning/dashboards/{{ item }}"
+    dest: "{{ monitoring_dir }}/grafana/provisioning/dashboards/{{ item }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0644"
+  loop: "{{ monitoring_grafana_dashboards }}"

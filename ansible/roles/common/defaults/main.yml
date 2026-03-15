@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+# Docker
+docker_network: guitar0-network
+
+# UFW — overridable per environment in group_vars
+firewall_allowed_ports:
+  - 22
+  - 80
+  - 443
+
+# Fail2ban — overridable per environment in group_vars
+fail2ban_bantime: 3600
+fail2ban_findtime: 600
+fail2ban_maxretry: 3

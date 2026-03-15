@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Create deploy group
+  ansible.builtin.group:
+    name: "{{ app_group }}"
+    state: present
+
+- name: Create deploy user
+  ansible.builtin.user:
+    name: "{{ app_user }}"
+    group: "{{ app_group }}"
+    groups: docker
+    shell: /bin/bash
+    create_home: true
+    state: present
+
+- name: Allow deploy user to sudo without password
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers.d/{{ app_user }}
+    line: "{{ app_user }} ALL=(ALL) NOPASSWD:ALL"
+    create: true
+    mode: "0440"
+    validate: "visudo -cf %s"
+
+- name: Set up SSH authorized keys for deploy user
+  ansible.posix.authorized_key:
+    user: "{{ app_user }}"
+    state: present
+    key: "{{ lookup('env', 'DEPLOY_SSH_PUBLIC_KEY') }}"
+  when: lookup('env', 'DEPLOY_SSH_PUBLIC_KEY') != ''

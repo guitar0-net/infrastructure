@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Create monitoring directories
+  ansible.builtin.import_tasks: directories.yml
+  tags: [monitoring, directories]
+
+- name: Configure firewall for monitoring
+  ansible.builtin.import_tasks: firewall.yml
+  tags: [monitoring, firewall]
+
+- name: Deploy observability configs
+  ansible.builtin.import_tasks: configs.yml
+  tags: [monitoring, configs]
+
+- name: Deploy monitoring stack
+  ansible.builtin.import_tasks: deploy.yml
+  tags: [monitoring, deploy]
+
+- name: Configure nginx for Grafana
+  ansible.builtin.import_tasks: nginx.yml
+  tags: [monitoring, nginx]

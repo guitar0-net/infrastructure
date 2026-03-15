@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Ensure application directories exist
+  ansible.builtin.import_tasks: directories.yml
+  tags: [frontend, directories]
+
+- name: Configure nginx vhost
+  ansible.builtin.import_tasks: nginx.yml
+  tags: [frontend, nginx]
+
+- name: Deploy frontend
+  ansible.builtin.import_tasks: deploy.yml
+  tags: [frontend, deploy]
+  when: frontend_state == 'deploy'
+
+- name: Rollback frontend
+  ansible.builtin.import_tasks: rollback.yml
+  tags: [frontend, rollback]
+  when: frontend_state == 'rollback'

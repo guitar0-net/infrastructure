@@ -1,0 +1,61 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Ensure backup directory exists
+  ansible.builtin.file:
+    path: "{{ backend_backup_dir }}"
+    state: directory
+    mode: "0750"
+
+- name: Set backup filename
+  ansible.builtin.set_fact:
+    backend_backup_filename: "{{ backend_app_name }}_{{ ansible_facts['date_time']['iso8601_basic_short'] }}.sql.gz"
+    backend_backup_path: "{{ backend_backup_dir }}/{{ backend_app_name }}_{{ ansible_facts['date_time']['iso8601_basic_short'] }}.sql.gz"
+
+- name: Get database container info
+  community.docker.docker_container_info:
+    name: "{{ backend_app_name }}-db-1"
+  register: backend_db_container
+  ignore_errors: true
+
+- name: Backup database via Docker exec
+  when: backend_db_container is defined and not backend_db_container.failed
+  ansible.builtin.shell: |
+    docker exec {{ backend_app_name }}-db-1 pg_dump -U {{ backend_db_user }} {{ backend_db_name }} | gzip > {{ backend_backup_path }}
+  args:
+    creates: "{{ backend_backup_path }}"
+
+- name: Backup database via direct connection
+  when: backend_db_container is not defined or backend_db_container.failed
+  ansible.builtin.shell: |
+    pg_dump -h {{ backend_db_host | default('localhost') }} -U {{ backend_db_user }} {{ backend_db_name }} | gzip > {{ backend_backup_path }}
+  args:
+    creates: "{{ backend_backup_path }}"
+  environment:
+    PGPASSWORD: "{{ backend_db_password }}"
+
+- name: Find old backups
+  ansible.builtin.find:
+    paths: "{{ backend_backup_dir }}"
+    patterns: "{{ backend_app_name }}_*.sql.gz"
+    age: "{{ backend_backup_retention_days }}d"
+  register: backend_old_backups
+
+- name: Remove old backups
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ backend_old_backups.files }}"
+
+- name: Log backup
+  ansible.builtin.lineinfile:
+    path: "{{ backend_log_dir }}/backups.log"
+    line: "{{ ansible_facts['date_time']['iso8601'] }} - Created backup: {{ backend_backup_filename }}"
+    create: true
+    mode: "0644"
+
+- name: Display backup info
+  ansible.builtin.debug:
+    msg: "Backup created: {{ backend_backup_path }}"

@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Production environment — non-secret variables
+# Secrets (passwords, tokens, keys) live in vault.yml
+
+app_env: production
+
+# --- Backend ---
+backend_app_name: guitar0-backend
+backend_app_port: 8001
+backend_db_docker_port: 5434
+
+backend_nginx_domains:
+  - server_name: api.guitar0.net
+    x_frame_options: DENY
+    serve_static: true
+    serve_media: true
+    locations:
+      - path: /admin/
+        rate_limit: general_limit
+        allow_only:
+          - 127.0.0.1
+      - path: /
+        rate_limit: api_limit
+
+# --- Frontend ---
+frontend_app_name: guitar0-frontend
+frontend_app_port: 3001
+frontend_api_url: api.guitar0.net
+
+frontend_nginx_domains:
+  - server_name: guitar0.net
+    locations:
+      - path: /
+        rate_limit: general_limit
+
+# --- Monitoring ---
+monitoring_dir: /opt/guitar0-monitoring
+grafana_domain: grafana.guitar0.net
+grafana_port: 3000

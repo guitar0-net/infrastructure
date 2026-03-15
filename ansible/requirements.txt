@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+ansible>=13.4,<14
+ansible-lint>=26.3,<27
+yamllint>=1.38,<2

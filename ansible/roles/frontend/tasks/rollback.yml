@@ -1,0 +1,84 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Determine rollback version
+  block:
+    - name: Use explicit version from environment
+      ansible.builtin.set_fact:
+        frontend_rollback_tag: "{{ lookup('env', 'ROLLBACK_TO') }}"
+      when: lookup('env', 'ROLLBACK_TO') != ''
+
+    - name: Read previous version from file
+      when: lookup('env', 'ROLLBACK_TO') == ''
+      block:
+        - name: Read PREVIOUS_VERSION file
+          ansible.builtin.slurp:
+            src: "{{ frontend_shared_dir }}/PREVIOUS_VERSION"
+          register: frontend_prev_version_file
+
+        - name: Set rollback tag from file
+          ansible.builtin.set_fact:
+            frontend_rollback_tag: "{{ frontend_prev_version_file.content | b64decode }}"
+
+- name: Fail if no rollback version available
+  ansible.builtin.fail:
+    msg: "No rollback version available. Set ROLLBACK_TO env var or ensure PREVIOUS_VERSION file exists."
+  when: frontend_rollback_tag is not defined or frontend_rollback_tag == ''
+
+- name: Read current version for display
+  ansible.builtin.slurp:
+    src: "{{ frontend_shared_dir }}/CURRENT_VERSION"
+  register: frontend_current_version_file
+  ignore_errors: true
+
+- name: Display rollback info
+  ansible.builtin.debug:
+    msg: "Rolling back from {{ frontend_current_version_file.content | b64decode | default('unknown') }} to {{ frontend_rollback_tag }}"
+
+- name: Pull rollback image
+  community.docker.docker_image:
+    name: "{{ frontend_docker_image }}:{{ frontend_rollback_tag }}"
+    source: pull
+    force_source: true
+
+- name: Re-render docker-compose with rollback tag
+  ansible.builtin.template:
+    src: docker-compose.prod.j2
+    dest: "{{ frontend_shared_dir }}/docker-compose.yml"
+    mode: "0644"
+  vars:
+    frontend_docker_tag: "{{ frontend_rollback_tag }}"
+
+- name: Restart with rollback version
+  community.docker.docker_compose_v2:
+    project_src: "{{ frontend_shared_dir }}"
+    state: present
+    recreate: always
+
+- name: Wait for frontend to be healthy after rollback
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ frontend_app_port }}{{ frontend_health_check_path }}"
+    status_code: 200
+  register: frontend_health_check
+  until: frontend_health_check.status == 200
+  retries: "{{ frontend_health_check_retries }}"
+  delay: "{{ frontend_health_check_delay }}"
+
+- name: Update version file
+  ansible.builtin.copy:
+    content: "{{ frontend_rollback_tag }}"
+    dest: "{{ frontend_shared_dir }}/CURRENT_VERSION"
+    mode: "0644"
+
+- name: Log rollback
+  ansible.builtin.lineinfile:
+    path: "{{ frontend_log_dir }}/deployments.log"
+    line: "{{ ansible_facts['date_time']['iso8601'] }} - ROLLBACK: Reverted to {{ frontend_docker_image }}:{{ frontend_rollback_tag }}"
+    create: true
+    mode: "0644"
+
+- name: Display rollback success
+  ansible.builtin.debug:
+    msg: "Successfully rolled back to {{ frontend_docker_image }}:{{ frontend_rollback_tag }}"

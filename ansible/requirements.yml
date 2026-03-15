@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+collections:
+  - name: community.general
+    version: ">=10.0.0"
+  - name: community.docker
+    version: ">=4.0.0"
+  - name: ansible.posix
+    version: ">=2.0.0"

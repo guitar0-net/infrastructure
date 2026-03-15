@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+# Role behavior: deploy | rollback | backup
+backend_state: deploy
+
+# Docker image — override in group_vars or pass via CI
+backend_docker_image: kotlyar562/guitar0net-backend
+backend_docker_tag: "{{ lookup('env', 'VERSION') | default('latest', true) }}"
+
+# Application
+backend_app_name: guitar0-backend
+backend_app_port: 8000
+
+# Directories
+backend_app_dir: "/opt/{{ backend_app_name }}"
+backend_shared_dir: "{{ backend_app_dir }}/shared"
+backend_backup_dir: "{{ backend_app_dir }}/backups"
+backend_log_dir: "{{ backend_app_dir }}/logs"
+
+# Health check
+backend_health_check_path: /metrics/
+backend_health_check_retries: 30
+backend_health_check_delay: 2
+
+# Backup
+backend_backup_retention_days: 30

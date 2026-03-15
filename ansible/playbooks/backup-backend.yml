@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Backup backend database
+  hosts: all
+  become: true
+
+  roles:
+    - role: backend
+      vars:
+        backend_state: backup
