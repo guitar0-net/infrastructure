@@ -11,7 +11,7 @@ backend_docker_image: kotlyar562/guitar0net-backend
 backend_docker_tag: "{{ lookup('env', 'VERSION') | default('latest', true) }}"
 
 # Application
-backend_app_name: guitar0-backend
+backend_app_name: "guitar0-backend-{{ app_env }}"
 backend_app_port: 8000
 
 # Directories

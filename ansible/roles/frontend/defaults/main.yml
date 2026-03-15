@@ -11,7 +11,7 @@ frontend_docker_image: kotlyar562/guitar0net-web
 frontend_docker_tag: "{{ lookup('env', 'VERSION') | default('latest', true) }}"
 
 # Application
-frontend_app_name: guitar0-frontend
+frontend_app_name: "guitar0-frontend-{{ app_env }}"
 frontend_app_port: 3000
 
 # Directories
