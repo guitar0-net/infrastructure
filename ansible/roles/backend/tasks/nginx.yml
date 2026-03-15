@@ -8,6 +8,7 @@
     src: nginx-site.j2
     dest: "/etc/nginx/sites-available/{{ backend_app_name }}"
     mode: "0644"
+    force: false
   notify: Reload nginx
 
 - name: Enable backend nginx site
