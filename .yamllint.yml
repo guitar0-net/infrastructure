@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+extends: default
+
+rules:
+  # Ansible tasks often have long module arguments — warn, don't fail
+  line-length:
+    max: 160
+    level: warning
+
+  # Enforce modern boolean literals; Ansible itself accepts yes/no/on/off
+  # but ansible-lint will flag them anyway — stay consistent
+  truthy:
+    allowed-values: ["true", "false"]
+    check-keys: false
+
+  # One space between code and inline comment is enough
+  comments:
+    min-spaces-from-content: 1
+
+  # Allow some space inside braces for readability in Jinja2 expressions
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
