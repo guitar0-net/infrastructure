@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Deploy Grafana nginx vhost config
+  ansible.builtin.template:
+    src: nginx-grafana.j2
+    dest: /etc/nginx/sites-available/grafana
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Enable Grafana nginx site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/grafana
+    dest: /etc/nginx/sites-enabled/grafana
+    state: link
+  notify: Reload nginx
+
+- name: Test nginx configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false

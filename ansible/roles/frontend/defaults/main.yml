@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+# Role behaviour: deploy | rollback
+frontend_state: deploy
+
+# Docker image — override in group_vars or pass via CI
+frontend_docker_image: kotlyar562/guitar0net-web
+frontend_docker_tag: "{{ lookup('env', 'VERSION') | default('latest', true) }}"
+
+# Application
+frontend_app_name: guitar0-frontend
+frontend_app_port: 3000
+
+# Directories
+frontend_app_dir: "/opt/{{ frontend_app_name }}"
+frontend_shared_dir: "{{ frontend_app_dir }}/shared"
+frontend_log_dir: "{{ frontend_app_dir }}/logs"
+
+# Health check
+frontend_health_check_path: /
+frontend_health_check_retries: 30
+frontend_health_check_delay: 2

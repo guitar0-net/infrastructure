@@ -1,0 +1,100 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Deploy (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: "Service to deploy: backend | frontend"
+        required: true
+        type: string
+      environment:
+        description: "Target environment: staging | production"
+        required: true
+        type: string
+      version:
+        description: "Docker image tag to deploy (e.g. v1.2.3 or main-abc1234)"
+        required: true
+        type: string
+      git_sha:
+        description: "Git SHA of the deployed commit"
+        required: true
+        type: string
+    secrets:
+      SSH_PRIVATE_KEY:
+        required: true
+      SSH_KNOWN_HOSTS:
+        required: true
+      ANSIBLE_VAULT_PASSWORD:
+        required: true
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.service }} → ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: ansible/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r ansible/requirements.txt
+
+      - name: Cache Ansible collections
+        uses: actions/cache@v4
+        with:
+          path: ~/.ansible/collections
+          key: ansible-collections-${{ hashFiles('ansible/requirements.yml') }}
+          restore-keys: |
+            ansible-collections-
+
+      - name: Install Ansible collections
+        run: ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Configure SSH key
+        run: |
+          install -d -m 700 ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+
+      - name: Configure SSH known hosts
+        run: echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+
+      - name: Create Ansible vault password file
+        run: echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > ansible/.vault_pass
+
+      - name: Run Ansible playbook
+        working-directory: ansible
+        env:
+          VERSION: ${{ inputs.version }}
+          GIT_SHA: ${{ inputs.git_sha }}
+          SSH_PRIVATE_KEY_FILE: /tmp/deploy_key
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          ansible-playbook playbooks/deploy-${{ inputs.service }}.yml \
+            -i inventory/${{ inputs.environment }}.yml
+
+      - name: Cleanup secrets
+        if: always()
+        run: |
+          rm -f /tmp/deploy_key
+          rm -f ansible/.vault_pass

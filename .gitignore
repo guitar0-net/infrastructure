@@ -1,0 +1,15 @@
+# Ansible
+ansible/.ansible/
+ansible/.vault_pass
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/

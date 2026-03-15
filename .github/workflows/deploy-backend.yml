@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Deploy Backend
+
+on:
+  repository_dispatch:
+    types: [deploy-backend]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options: [staging, production]
+      version:
+        description: "Docker image tag"
+        required: true
+        type: string
+      git_sha:
+        description: "Git SHA"
+        required: false
+        type: string
+        default: "unknown"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy backend
+    uses: ./.github/workflows/deploy-env.yml
+    with:
+      service: backend
+      environment: ${{ github.event.client_payload.environment || inputs.environment }}
+      version: ${{ github.event.client_payload.version || inputs.version }}
+      git_sha: ${{ github.event.client_payload.git_sha || inputs.git_sha }}
+    secrets:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+      ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

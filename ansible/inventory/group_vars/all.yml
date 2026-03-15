@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+# Server-level variables shared across all roles.
+# Service-specific variables live in each role's defaults/main.yml
+# and are overridden per environment in group_vars/<env>/vars.yml
+
+# Deploy user (used by all roles)
+app_user: deploy
+app_group: deploy
+
+# UFW firewall
+firewall_allowed_ports:
+  - 22 # SSH
+  - 80 # HTTP
+  - 443 # HTTPS
+
+# Fail2ban
+fail2ban_bantime: 3600
+fail2ban_findtime: 600
+fail2ban_maxretry: 3
+
+# Backup retention (days)
+backup_retention_days: 30

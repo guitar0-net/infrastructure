@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Nginx vhost for {{ frontend_app_name }} ({{ app_env }})
+# SSL will be added by: certbot --nginx {% for d in frontend_nginx_domains %}-d {{ d.server_name }} {% endfor %}
+
+{% for domain in frontend_nginx_domains %}
+server {
+    listen 80;
+    listen [::]:80;
+    server_name {{ domain.server_name }};
+
+    # Security headers
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+
+    # Gzip
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml application/json application/javascript
+               application/xml application/xml+rss text/javascript;
+
+    # Next.js static assets — long cache
+    location /_next/static/ {
+        proxy_pass http://127.0.0.1:{{ frontend_app_port }};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+    }
+
+{% for loc in domain.locations %}
+    location {{ loc.path }} {
+{% if loc.rate_limit is defined %}
+        limit_req zone={{ loc.rate_limit }} burst={{ loc.burst | default(20) }} nodelay;
+{% endif %}
+        proxy_pass http://127.0.0.1:{{ frontend_app_port }};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # Required for Next.js HMR websocket in dev (harmless in prod)
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+{% endfor %}
+}
+
+{% endfor %}

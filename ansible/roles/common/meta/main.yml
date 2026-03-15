@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+galaxy_info:
+  role_name: common
+  author: guitar0-net
+  description: Base server provisioning — packages, Docker, user, firewall, nginx, certbot
+  license: AGPL-3.0-or-later
+  min_ansible_version: "2.15"
+
+# Prevent running this role multiple times on the same host in one play
+allow_duplicates: false

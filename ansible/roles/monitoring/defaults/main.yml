@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+# Monitoring stack directory — override in group_vars/staging/vars.yml
+monitoring_dir: /opt/guitar0-monitoring
+
+# Grafana
+monitoring_grafana_port: 3000
+
+# Dashboards to deploy (filenames from observability/grafana/provisioning/dashboards/)
+monitoring_grafana_dashboards:
+  - guitar0-backend.json
+  - node-exporter.json
