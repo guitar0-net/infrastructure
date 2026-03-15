@@ -24,3 +24,8 @@ fail2ban_maxretry: 3
 
 # Backup retention (days)
 backup_retention_days: 30
+
+# Monitoring (single instance per server)
+monitoring_dir: /opt/guitar0-monitoring
+monitoring_grafana_port: 3010
+grafana_domain: grafana.guitar0.net
