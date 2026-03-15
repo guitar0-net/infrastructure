@@ -18,12 +18,23 @@ backend_nginx_domains:
     serve_static: true
     serve_media: true
     locations:
-      - path: /admin/
+      - path: /admin-guitar0/
         rate_limit: general_limit
         allow_only:
           - 127.0.0.1
       - path: /
         rate_limit: api_limit
+  - server_name: admin.guitar0.net
+    x_frame_options: SAMEORIGIN
+    serve_static: true
+    locations:
+      - path: /admin-guitar0/
+        rate_limit: general_limit
+        burst: 10
+        allow_only:
+          - 91.203.143.0/24
+      - path: /
+        return: "301 /admin-guitar0/"
 
 # --- Frontend ---
 frontend_app_port: 3001
