@@ -38,4 +38,4 @@ frontend_nginx_domains:
 # --- Monitoring ---
 monitoring_dir: /opt/guitar0-monitoring
 grafana_domain: grafana.staging.guitar0.net
-monitoring_grafana_port: 3000
+monitoring_grafana_port: 3010
