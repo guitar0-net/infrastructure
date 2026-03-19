@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 global:
-  resolve_timeout: 5m
+  resolve_timeout: 1m
 
 route:
   group_by: ["alertname", "severity", "env"]
