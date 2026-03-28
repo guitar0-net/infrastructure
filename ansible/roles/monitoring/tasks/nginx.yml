@@ -8,6 +8,7 @@
     src: nginx-grafana.j2
     dest: /etc/nginx/sites-available/grafana
     mode: "0644"
+    force: false
   notify: Reload nginx
 
 - name: Enable Grafana nginx site
