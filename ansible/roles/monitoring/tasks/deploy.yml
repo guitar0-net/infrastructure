@@ -3,6 +3,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
+- name: Stat docker.sock to get actual group GID
+  ansible.builtin.stat:
+    path: /var/run/docker.sock
+  register: docker_sock_stat
+
+- name: Set docker_gid from host docker.sock
+  ansible.builtin.set_fact:
+    docker_gid: "{{ docker_sock_stat.stat.gid }}"
+  when: docker_sock_stat.stat.exists
+
 - name: Render docker-compose for monitoring stack
   ansible.builtin.template:
     src: docker-compose.yml.j2

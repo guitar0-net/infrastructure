@@ -11,7 +11,9 @@ services:
   prometheus:
     image: prom/prometheus:v3.1.0
     restart: unless-stopped
-    user: root
+    # Run as default nobody user (UID 65534), add to docker group for socket access.
+    group_add:
+      - "{{ docker_gid | default('999') }}"
     volumes:
       - {{ monitoring_dir }}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - {{ monitoring_dir }}/prometheus/rules:/etc/prometheus/rules:ro

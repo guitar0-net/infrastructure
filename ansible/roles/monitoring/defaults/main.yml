@@ -9,6 +9,9 @@ monitoring_dir: /opt/guitar0-monitoring
 # Grafana
 monitoring_grafana_port: 3000
 
+# Docker group GID — needed for Prometheus Docker SD without running as root.
+docker_gid: "999"
+
 # Dashboards to deploy (filenames from observability/grafana/provisioning/dashboards/)
 monitoring_grafana_dashboards:
   - guitar0-backend.json
