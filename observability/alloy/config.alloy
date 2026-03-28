@@ -5,7 +5,7 @@
 // Discover all running Docker containers
 discovery.docker "containers" {
   host             = "unix:///var/run/docker.sock"
-  refresh_interval = "5s"
+  refresh_interval = "30s"
 }
 
 // Filter to guitar0-backend project containers only and add labels
