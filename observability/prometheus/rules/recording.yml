@@ -24,17 +24,17 @@ groups:
       - record: guitar0:http_error_rate:ratio5m
         expr: >-
           sum by (container, env) (rate(guitar0_backend_http_requests_total{status_code=~"[45].."}[5m]))
-          / sum by (container, env) (rate(guitar0_backend_http_requests_total[5m]))
+          / (sum by (container, env) (rate(guitar0_backend_http_requests_total[5m])) > 0)
 
       - record: guitar0:http_error_rate_4xx:ratio5m
         expr: >-
           sum by (container, env) (rate(guitar0_backend_http_requests_total{status_code=~"4.."}[5m]))
-          / sum by (container, env) (rate(guitar0_backend_http_requests_total[5m]))
+          / (sum by (container, env) (rate(guitar0_backend_http_requests_total[5m])) > 0)
 
       - record: guitar0:http_error_rate_5xx:ratio5m
         expr: >-
           sum by (container, env) (rate(guitar0_backend_http_requests_total{status_code=~"5.."}[5m]))
-          / sum by (container, env) (rate(guitar0_backend_http_requests_total[5m]))
+          / (sum by (container, env) (rate(guitar0_backend_http_requests_total[5m])) > 0)
 
       # ── Latency percentiles (histogram_quantile — самые тяжёлые) ─────────────
 

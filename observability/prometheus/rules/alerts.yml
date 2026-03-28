@@ -24,11 +24,22 @@ groups:
           summary: "Guitar0 backend недоступен"
           description: "Backend не отвечает более 2 минут."
 
-      - alert: Guitar0High5xxErrorRate
-        expr: guitar0:http_error_rate_5xx:ratio5m > 0.05
+      - alert: Guitar0High5xxErrorRateProduction
+        expr: guitar0:http_error_rate_5xx:ratio5m{env="production"} > 0.05
         for: 5m
         labels:
           severity: critical
+          env: production
+        annotations:
+          summary: "Высокий уровень 5xx ошибок"
+          description: "5xx error rate: {{ $value | humanizePercentage }} (порог 5%)"
+
+      - alert: Guitar0High5xxErrorRateStaging
+        expr: guitar0:http_error_rate_5xx:ratio5m{env="staging"} > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          env: staging
         annotations:
           summary: "Высокий уровень 5xx ошибок"
           description: "5xx error rate: {{ $value | humanizePercentage }} (порог 5%)"
@@ -53,11 +64,22 @@ groups:
           summary: "Высокий уровень 4xx ошибок"
           description: "4xx error rate: {{ $value | humanizePercentage }} (порог 90%)"
 
-      - alert: Guitar0HighLatency
-        expr: guitar0:http_request_duration_p99:5m > 1
+      - alert: Guitar0HighLatencyProduction
+        expr: guitar0:http_request_duration_p99:5m{env="production"} > 1
         for: 5m
         labels:
           severity: warning
+          env: production
+        annotations:
+          summary: "Высокая латентность P99"
+          description: "P99 latency: {{ humanizeDuration $value }} (порог 1s)"
+
+      - alert: Guitar0HighLatencyStaging
+        expr: guitar0:http_request_duration_p99:5m{env="staging"} > 1
+        for: 5m
+        labels:
+          severity: warning
+          env: staging
         annotations:
           summary: "Высокая латентность P99"
           description: "P99 latency: {{ humanizeDuration $value }} (порог 1s)"
