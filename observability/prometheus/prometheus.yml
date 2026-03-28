@@ -63,6 +63,11 @@ scrape_configs:
       - source_labels: [__meta_docker_container_label_environment]
         target_label: env
 
+      # Override job label from container label (guitar0-backend, guitar0-frontend, etc.)
+      - source_labels: [__meta_docker_container_label_prometheus_io_job]
+        regex: (.+)
+        target_label: job
+
   - job_name: node
     static_configs:
       - targets: ["node-exporter:9100"]

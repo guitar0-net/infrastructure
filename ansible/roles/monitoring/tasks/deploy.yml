@@ -21,6 +21,16 @@
     group: "{{ app_group }}"
     mode: "0644"
 
+- name: Fix prometheus_data volume ownership for nobody user (UID 65534)
+  community.docker.docker_container:
+    name: prometheus-chown
+    image: alpine
+    command: chown -R 65534:65534 /prometheus
+    volumes:
+      - guitar0-monitoring_prometheus_data:/prometheus
+    auto_remove: true
+    detach: false
+
 - name: Deploy monitoring stack
   community.docker.docker_compose_v2:
     project_src: "{{ monitoring_dir }}"

@@ -35,6 +35,7 @@ services:
       - alertmanager_data:/alertmanager
     command:
       - --config.file=/etc/alertmanager/config.yml
+      - --config.expand-env=true
       - --storage.path=/alertmanager
     networks:
       - monitoring

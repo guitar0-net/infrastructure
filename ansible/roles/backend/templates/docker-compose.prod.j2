@@ -21,6 +21,7 @@ services:
       - {{ backend_log_dir }}:/app/logs
     labels:
       - "prometheus.io/scrape=true"
+      - "prometheus.io/job=guitar0-backend"
       - "prometheus.io/path=/metrics/"
       - "prometheus.io/port=8000"
       - "environment={{ app_env }}"
