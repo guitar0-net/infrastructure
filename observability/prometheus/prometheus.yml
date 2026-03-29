@@ -33,8 +33,15 @@ scrape_configs:
         action: keep
 
       # Drop monitoring stack containers
-      - source_labels: [__meta_docker_container_label_com_docker_compose_project]
+      - source_labels:
+          [__meta_docker_container_label_com_docker_compose_project]
         regex: guitar0-monitoring
+        action: drop
+
+      # Drop frontend containers (they have no metrics endpoint; add a dedicated job when ready)
+      - source_labels:
+          [__meta_docker_container_label_com_docker_compose_project]
+        regex: guitar0-frontend.*
         action: drop
 
       # Set metrics path from container label
@@ -45,13 +52,18 @@ scrape_configs:
       # Build scrape address from container name + port label.
       # Uses container hostname (not IP) so it works regardless of which network
       # Docker SD happens to return. Container name has a leading slash: /foo -> foo:8000
-      - source_labels: [__meta_docker_container_name, __meta_docker_container_label_prometheus_io_port]
+      - source_labels:
+          [
+            __meta_docker_container_name,
+            __meta_docker_container_label_prometheus_io_port,
+          ]
         regex: /(.+);(.+)
         replacement: "$1:$2"
         target_label: __address__
 
       # Add compose service name as label
-      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+      - source_labels:
+          [__meta_docker_container_label_com_docker_compose_service]
         target_label: service
 
       # Add container name as label (strip leading slash)
@@ -69,5 +81,6 @@ scrape_configs:
         target_label: job
 
   - job_name: node
+    scrape_interval: 60s
     static_configs:
       - targets: ["node-exporter:9100"]
