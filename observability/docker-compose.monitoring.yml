@@ -40,11 +40,12 @@ services:
       - alertmanager_data:/alertmanager
     command:
       - --config.file=/etc/alertmanager/config.yml
-      - --config.expand-env=true
       - --storage.path=/alertmanager
     environment:
       TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
       TELEGRAM_CHAT_ID: "${TELEGRAM_CHAT_ID}"
+    ports:
+      - "127.0.0.1:9093:9093"
     networks:
       - monitoring
 
