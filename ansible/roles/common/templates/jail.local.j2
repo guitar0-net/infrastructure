@@ -34,3 +34,10 @@ logpath = {{ log_dir }}/nginx/error.log
 maxretry = 10
 findtime = 60
 bantime = 600
+
+[recidive]
+enabled = true
+logpath = /var/log/fail2ban.log
+bantime = 1w
+findtime = 1d
+maxretry = 5

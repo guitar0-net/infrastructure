@@ -65,7 +65,7 @@
         services:
           - db
         state: present
-        pull: never
+        pull: missing
 
     - name: Run migrations
       ansible.builtin.command:
