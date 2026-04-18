@@ -48,6 +48,56 @@ ansible/
 observability/           # Prometheus rules, Grafana dashboards
 ```
 
+## New server setup
+
+Before running Ansible, prepare the server manually:
+
+1. Generate an SSH key pair (if you don't have one):
+   ```bash
+   ssh-keygen -t ed25519 -C "guitar0-deploy"
+   ```
+
+2. Add your public key to the server via the hosting control panel, or copy it as root:
+   ```bash
+   ssh root@<server-ip>
+   mkdir -p /home/deploy/.ssh
+   echo "<your public key>" >> /home/deploy/.ssh/authorized_keys
+   ```
+
+3. Create the `deploy` user with passwordless sudo:
+   ```bash
+   adduser deploy
+   echo "deploy ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/deploy
+   mkdir -p /home/deploy/.ssh
+   cp /root/.ssh/authorized_keys /home/deploy/.ssh/
+   chown -R deploy:deploy /home/deploy/.ssh
+   chmod 700 /home/deploy/.ssh && chmod 600 /home/deploy/.ssh/authorized_keys
+   ```
+
+4. Update `ansible/inventory/production.yml` with the new server IP/hostname.
+
+5. Create the vault password file:
+   ```bash
+   echo "<vault-password>" > ansible/.vault_pass
+   chmod 600 ansible/.vault_pass
+   ```
+
+6. Remove the old host key and trust the new server:
+   ```bash
+   ssh-keygen -R <server-hostname>
+   ssh-keyscan -H <server-hostname> >> ~/.ssh/known_hosts
+   ```
+
+7. Verify connectivity:
+   ```bash
+   make ping INVENTORY=production SSH_PRIVATE_KEY_FILE=~/.ssh/<your-key>
+   ```
+
+8. Run one-time setup:
+   ```bash
+   make setup INVENTORY=production SSH_PRIVATE_KEY_FILE=~/.ssh/<your-key>
+   ```
+
 ## Usage
 
 ```bash
