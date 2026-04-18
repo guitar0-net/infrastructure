@@ -12,6 +12,9 @@ SHELL := /bin/bash
 INVENTORY ?= staging
 VERSION   ?= latest
 
+ANSIBLE_CONFIG := ansible/ansible.cfg
+export ANSIBLE_CONFIG
+
 ANSIBLE := ansible-playbook -i ansible/inventory/$(INVENTORY).yml
 
 # =============================================================================

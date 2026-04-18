@@ -13,7 +13,16 @@
   loop:
     - "{{ backend_app_dir }}"
     - "{{ backend_shared_dir }}"
+    - "{{ backend_backup_dir }}"
+
+- name: Create backend directories writable by container appuser (uid=1001)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "1001"
+    group: "1001"
+    mode: "0755"
+  loop:
     - "{{ backend_shared_dir }}/staticfiles"
     - "{{ backend_shared_dir }}/media"
-    - "{{ backend_backup_dir }}"
     - "{{ backend_log_dir }}"

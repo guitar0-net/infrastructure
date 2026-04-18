@@ -16,3 +16,6 @@ firewall_allowed_ports:
 fail2ban_bantime: 3600
 fail2ban_findtime: 600
 fail2ban_maxretry: 3
+
+# Log directory
+log_dir: /var/log
