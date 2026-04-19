@@ -33,6 +33,11 @@ backend_nginx_domains:
         burst: 10
         allow_only:
           - 91.203.143.0/24
+      - path: /markdownx/
+        rate_limit: general_limit
+        burst: 10
+        allow_only:
+          - 91.203.143.0/24
       - path: /
         return: "301 /admin-guitar0/"
 
