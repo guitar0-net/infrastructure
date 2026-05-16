@@ -48,9 +48,15 @@ loki.source.docker "guitar0_logs" {
 
 // Extract log level from the first word of each log line (e.g. "INFO ...", "WARNING ...")
 // and attach it as a Loki label so dashboards can filter by level.
+// Lines that don't match get level=UNKNOWN so the stream selector level=~".+" always works.
 loki.process "extract_level" {
   stage.regex {
     expression = `^(?P<level>DEBUG|INFO|WARNING|ERROR|CRITICAL)`
+  }
+
+  stage.template {
+    source   = "level"
+    template = '{{ if .Value }}{{ .Value }}{{ else }}UNKNOWN{{ end }}'
   }
 
   stage.labels {
