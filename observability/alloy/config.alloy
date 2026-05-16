@@ -56,7 +56,7 @@ loki.process "extract_level" {
 
   stage.template {
     source   = "level"
-    template = '{{ if .Value }}{{ .Value }}{{ else }}UNKNOWN{{ end }}'
+    template = `{{ if .Value }}{{ .Value }}{{ else }}UNKNOWN{{ end }}`
   }
 
   stage.labels {
