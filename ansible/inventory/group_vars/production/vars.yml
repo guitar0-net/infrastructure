@@ -44,6 +44,7 @@ backend_nginx_domains:
 # --- Frontend ---
 frontend_app_port: 3001
 frontend_api_url: api.guitar0.net
+frontend_posthog_key: phc_xqKUsPeMj7WeyMsZ4pFsuswFZfrBTH7GQJZUv2WYYtRq
 
 frontend_nginx_domains:
   - server_name: guitar0.net
