@@ -12,10 +12,10 @@ discovery.docker "containers" {
 discovery.relabel "guitar0_containers" {
   targets = discovery.docker.containers.targets
 
-  // Keep only containers from the guitar0-backend compose project
+  // Keep only containers from guitar0-backend compose projects (any env: dev/staging/production)
   rule {
     source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
-    regex         = "guitar0-backend"
+    regex         = "guitar0-backend.*"
     action        = "keep"
   }
 
