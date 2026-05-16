@@ -1328,7 +1328,7 @@
         "name": "level",
         "type": "custom",
         "label": "Level",
-        "query": "DEBUG,INFO,WARNING,ERROR,CRITICAL",
+        "query": "UNKNOWN,DEBUG,INFO,WARNING,ERROR,CRITICAL",
         "includeAll": true,
         "allValue": ".+",
         "multi": false,
@@ -1338,7 +1338,15 @@
           "value": "$__all"
         },
         "hide": 0,
-        "options": []
+        "options": [
+          { "selected": false, "text": "All",      "value": "$__all"   },
+          { "selected": false, "text": "UNKNOWN",  "value": "UNKNOWN"  },
+          { "selected": false, "text": "DEBUG",    "value": "DEBUG"    },
+          { "selected": false, "text": "INFO",     "value": "INFO"     },
+          { "selected": false, "text": "WARNING",  "value": "WARNING"  },
+          { "selected": false, "text": "ERROR",    "value": "ERROR"    },
+          { "selected": false, "text": "CRITICAL", "value": "CRITICAL" }
+        ]
       },
       {
         "current": {},
@@ -1362,5 +1370,5 @@
   "timezone": "browser",
   "title": "Guitar0 Backend",
   "uid": "guitar0-backend",
-  "version": 4
+  "version": 5
 }
