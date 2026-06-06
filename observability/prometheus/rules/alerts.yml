@@ -34,16 +34,6 @@ groups:
           summary: "Высокий уровень 5xx ошибок"
           description: "5xx error rate: {{ $value | humanizePercentage }} (порог 5%)"
 
-      - alert: Guitar0High5xxErrorRateStaging
-        expr: guitar0:http_error_rate_5xx:ratio5m{env="staging"} > 0.05
-        for: 5m
-        labels:
-          severity: warning
-          env: staging
-        annotations:
-          summary: "Высокий уровень 5xx ошибок"
-          description: "5xx error rate: {{ $value | humanizePercentage }} (порог 5%)"
-
       - alert: Guitar0High4xxErrorRateProduction
         expr: guitar0:http_error_rate_4xx:ratio5m{env="production"} > 0.20
         for: 10m
@@ -54,35 +44,16 @@ groups:
           summary: "Высокий уровень 4xx ошибок"
           description: "4xx error rate: {{ $value | humanizePercentage }} (порог 20%)"
 
-      - alert: Guitar0High4xxErrorRateStaging
-        expr: guitar0:http_error_rate_4xx:ratio5m{env="staging"} > 0.90
-        for: 10m
-        labels:
-          severity: warning
-          env: staging
-        annotations:
-          summary: "Высокий уровень 4xx ошибок"
-          description: "4xx error rate: {{ $value | humanizePercentage }} (порог 90%)"
-
       - alert: Guitar0HighLatencyProduction
-        expr: guitar0:http_request_duration_p99:5m{env="production"} > 1
+        expr: guitar0:http_request_duration_p99:5m{env="production"} > 3
         for: 5m
         labels:
           severity: warning
           env: production
         annotations:
           summary: "Высокая латентность P99"
-          description: "P99 latency: {{ humanizeDuration $value }} (порог 1s)"
+          description: "P99 latency: {{ humanizeDuration $value }} (порог 3s)"
 
-      - alert: Guitar0HighLatencyStaging
-        expr: guitar0:http_request_duration_p99:5m{env="staging"} > 1
-        for: 5m
-        labels:
-          severity: warning
-          env: staging
-        annotations:
-          summary: "Высокая латентность P99"
-          description: "P99 latency: {{ humanizeDuration $value }} (порог 1s)"
 
   - name: node_alerts
     rules:
