@@ -46,17 +46,20 @@ loki.source.docker "guitar0_logs" {
   forward_to = [loki.process.extract_level.receiver]
 }
 
-// Extract log level from the first word of each log line (e.g. "INFO ...", "WARNING ...")
-// and attach it as a Loki label so dashboards can filter by level.
-// Lines that don't match get level=UNKNOWN so the stream selector level=~".+" always works.
+// Extract log level and attach it as a Loki label so dashboards can filter by level.
+// Matches either the first word of the line (e.g. "INFO ...", "WARNING ...", the
+// shape emitted by Django/gunicorn) or a bracketed "[LEVEL]" token anywhere in the
+// line (e.g. "[1] [INFO] ..."), so a source that doesn't put the level first still
+// gets picked up instead of silently falling into UNKNOWN.
+// Lines that match neither get level=UNKNOWN so the stream selector level=~".+" always works.
 loki.process "extract_level" {
   stage.regex {
-    expression = `^(?P<level>DEBUG|INFO|WARNING|ERROR|CRITICAL)`
+    expression = `(?:^(?P<level>DEBUG|INFO|WARNING|ERROR|CRITICAL)\b)|(?:\[(?P<level_bracketed>DEBUG|INFO|WARNING|ERROR|CRITICAL)\])`
   }
 
   stage.template {
     source   = "level"
-    template = `{{ if .Value }}{{ .Value }}{{ else }}UNKNOWN{{ end }}`
+    template = `{{ if .level }}{{ .level }}{{ else if .level_bracketed }}{{ .level_bracketed }}{{ else }}UNKNOWN{{ end }}`
   }
 
   stage.labels {
