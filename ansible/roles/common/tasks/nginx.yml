@@ -24,42 +24,9 @@
     mode: "0644"
   notify: Reload nginx
 
-- name: Deploy shared nginx timing log format
-  ansible.builtin.copy:
-    content: |
-      # Access log format carrying upstream timings.
-      #
-      # $request_time is the whole request as the client experiences it: it
-      # includes reading the request body and writing the response back out,
-      # so a slow mobile connection inflates it even when the server was fast.
-      # $upstream_response_time is what gunicorn actually spent.
-      #
-      # rt >> urt          -> time is on the client/network side, not the server.
-      # urt >> Django      -> requests are queueing in front of the sync workers,
-      #                       which neither Django nor gunicorn's own %(D)s can
-      #                       see, because both start counting once a worker has
-      #                       already picked the request up.
-      # uct > 0            -> the accept backlog is filling up.
-      log_format timing '$time_iso8601 $remote_addr $host "$request" $status $body_bytes_sent '
-                        'rt=$request_time uct=$upstream_connect_time uht=$upstream_header_time '
-                        'urt=$upstream_response_time cache=$upstream_cache_status "$http_user_agent"';
-    dest: /etc/nginx/conf.d/log-format.conf
-    mode: "0644"
-  notify: Reload nginx
-
-- name: Create nginx proxy cache directory
-  ansible.builtin.file:
-    path: /var/cache/nginx/guitar0
-    state: directory
-    owner: www-data
-    group: www-data
-    mode: "0750"
-
-- name: Deploy shared nginx proxy cache zone config
-  ansible.builtin.copy:
-    content: |
-      # Shared response cache — opt in per-location via `cache: true`
-      proxy_cache_path /var/cache/nginx/guitar0 levels=1:2 keys_zone=guitar0_cache:10m max_size=100m inactive=48h use_temp_path=off;
-    dest: /etc/nginx/conf.d/cache.conf
-    mode: "0644"
-  notify: Reload nginx
+# The `timing` log format and the `guitar0_cache` proxy cache zone used to live
+# here too, but only the backend vhost references them, and this role runs from
+# playbooks/setup.yml alone. A backend deploy that re-rendered the vhost without
+# setup.yml having run first would abort at `nginx -t` on `unknown log format
+# "timing"`. They now ship with the role that uses them —
+# roles/backend/tasks/nginx.yml — at the same conf.d paths.
