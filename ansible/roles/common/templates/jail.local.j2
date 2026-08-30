@@ -10,7 +10,7 @@ bantime = {{ fail2ban_bantime }}
 findtime = {{ fail2ban_findtime }}
 maxretry = {{ fail2ban_maxretry }}
 banaction = ufw
-ignoreip = {{ fail2ban_ignoreip | join(' ') }}
+ignoreip = {{ (fail2ban_ignoreip + admin_allowed_networks) | unique | join(' ') }}
 
 # `backend = systemd` here would apply to every jail below and silently void
 # their `logpath`: a systemd-backed jail reads the journal and never opens the
