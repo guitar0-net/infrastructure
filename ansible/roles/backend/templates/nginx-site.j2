@@ -85,8 +85,13 @@ server {
         # Only successful responses are cached — errors always hit the backend.
         proxy_cache guitar0_cache;
         proxy_cache_valid 200 {{ loc.cache_valid | default("60s") }};
+        # No credential in the key — these endpoints are public. Adding auth
+        # here means the credential enters the key, or the caching goes.
         proxy_cache_key "$scheme$request_method$host$request_uri";
+        # proxy_cache_lock is deliberately absent: it would serialise misses on
+        # a never-cached URL behind a 5s timeout. Revisit from cache= in the log.
         proxy_cache_use_stale error timeout updating;
+        proxy_cache_background_update on;
         add_header X-Cache-Status $upstream_cache_status always;
 {{ security_headers(domain, "        ") }}
 {% endif %}
