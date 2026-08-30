@@ -61,6 +61,7 @@ backend_app_dir: "/opt/{{ backend_app_name }}"
 backend_shared_dir: "{{ backend_app_dir }}/shared"
 backend_backup_dir: "{{ backend_app_dir }}/backups"
 backend_log_dir: "{{ backend_app_dir }}/logs"
+backend_videos_dir: /opt/guitar0-shared/videos
 
 # Health check
 backend_health_check_path: /metrics/

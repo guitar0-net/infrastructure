@@ -3,6 +3,32 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
+- name: Deploy nginx-forbidden fail2ban filter
+  ansible.builtin.copy:
+    content: |
+      # Bans clients that repeatedly trip an nginx `deny` rule.
+      #
+      # nginx writes one [error] line per refusal:
+      #   2026/08/30 13:38:17 [error] 850243#850243: *12 access forbidden by
+      #   rule, client: 52.139.44.162, server: admin.guitar0.net,
+      #   request: "GET /admin-guitar0/ HTTP/1.1", host: "admin.guitar0.net"
+      #
+      # No stock filter matches it. nginx-botsearch keys on failed file opens,
+      # which never happen in these vhosts: `location /` returns a redirect and
+      # every other location proxies, so nginx never touches the filesystem on
+      # a scanner's URL.
+      #
+      # datepattern is required — without it fail2ban falls back to guessing
+      # and nginx's `YYYY/MM/DD` (slashes, not dashes) is not among the formats
+      # it tries first.
+      [Definition]
+      failregex = ^\s*\[error\] \d+#\d+: \*\d+ access forbidden by rule, client: <HOST>, server: \S*, request: "[^"]*"
+      ignoreregex =
+      datepattern = ^%%Y/%%m/%%d %%H:%%M:%%S
+    dest: /etc/fail2ban/filter.d/nginx-forbidden.conf
+    mode: "0644"
+  notify: Restart fail2ban
+
 - name: Configure fail2ban
   ansible.builtin.template:
     src: jail.local.j2

@@ -5,7 +5,10 @@
 # Nginx vhost for {{ backend_app_name }} ({{ app_env }})
 # SSL will be added by: certbot --nginx {% for d in backend_nginx_domains %}-d {{ d.server_name }} {% endfor %}
 
-{%- macro security_headers(domain, indent) %}
+{# `{%- macro %}` here would strip the newline that terminates the comment
+   line above and swallow the first `server {` into it. Plain `{% macro %}`
+   plus trim_blocks emits nothing of its own. #}
+{% macro security_headers(domain, indent) %}
 {% if domain.x_frame_options is defined %}
 {{ indent }}add_header X-Frame-Options "{{ domain.x_frame_options }}" always;
 {% endif %}
@@ -51,6 +54,16 @@ server {
         alias {{ backend_shared_dir }}/media/;
         expires 7d;
         add_header Cache-Control "public";
+{{ security_headers(domain, "        ") }}
+        access_log off;
+    }
+
+{% endif %}
+{% if domain.serve_videos | default(false) %}
+    location /videos/ {
+        alias {{ backend_videos_dir }}/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
 {{ security_headers(domain, "        ") }}
         access_log off;
     }

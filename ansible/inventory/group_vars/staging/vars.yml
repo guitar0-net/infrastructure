@@ -32,6 +32,7 @@ backend_nginx_domains:
     x_frame_options: DENY
     serve_static: true
     serve_media: true
+    serve_videos: true
     locations:
       - path: /admin-guitar0/
         rate_limit: general_limit
@@ -50,13 +51,11 @@ backend_nginx_domains:
       - path: /admin-guitar0/
         rate_limit: general_limit
         burst: 10
-        allow_only:
-          - 91.203.143.0/24
+        allow_only: "{{ admin_allowed_networks }}"
       - path: /markdownx/
         rate_limit: general_limit
         burst: 10
-        allow_only:
-          - 91.203.143.0/24
+        allow_only: "{{ admin_allowed_networks }}"
       - path: /
         return: "301 /admin-guitar0/"
 
