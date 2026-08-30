@@ -8,6 +8,21 @@
 
 app_env: staging
 
+# --- Resource limits ---
+# Production values live in roles/*/defaults/main.yml.
+backend_app_cpu_limit: "0.75"
+backend_app_memory_limit: 768M
+backend_app_cpu_reservation: "0.1"
+backend_app_memory_reservation: 256M
+backend_db_cpu_limit: "0.5"
+backend_db_memory_limit: 384M
+backend_db_cpu_reservation: "0.05"
+backend_db_memory_reservation: 64M
+frontend_app_cpu_limit: "0.5"
+frontend_app_memory_limit: 256M
+frontend_app_cpu_reservation: "0.1"
+frontend_app_memory_reservation: 128M
+
 # --- Backend ---
 backend_app_port: 8000
 backend_db_docker_port: 5433
@@ -22,6 +37,10 @@ backend_nginx_domains:
         rate_limit: general_limit
         allow_only:
           - 127.0.0.1
+      - path: '~ "^/api/v1/lessons/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/?$"'
+        rate_limit: api_limit
+        cache: true
+        cache_valid: 24h
       - path: /
         rate_limit: api_limit
   - server_name: admin.staging.guitar0.net
@@ -40,6 +59,10 @@ backend_nginx_domains:
           - 91.203.143.0/24
       - path: /
         return: "301 /admin-guitar0/"
+
+# In-app purchase verification.
+backend_google_play_package_name: com.andreykotlyar.guitar0
+backend_apple_bundle_id: com.andreykotlyar.guitar0
 
 # --- Frontend ---
 frontend_app_port: 3000

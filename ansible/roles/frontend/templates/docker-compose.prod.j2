@@ -28,11 +28,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.0"
-          memory: 512M
+          cpus: "{{ frontend_app_cpu_limit }}"
+          memory: {{ frontend_app_memory_limit }}
         reservations:
-          cpus: "0.25"
-          memory: 256M
+          cpus: "{{ frontend_app_cpu_reservation }}"
+          memory: {{ frontend_app_memory_reservation }}
 
 networks:
   guitar0-network:

@@ -19,6 +19,43 @@ backend_app_port: 8000
 # Set explicitly to fit the memory limit below.
 backend_gunicorn_workers: 3
 
+# Resource limits — these are ceilings, not reservations, so their sum may
+# legitimately exceed the host's 4 vCPU / 8 GB.
+#
+# Sized from an actual `docker stats` snapshot (2026-08-08): the app container
+# held 312 MiB and the database 27 MiB, so memory was never the constraint —
+# CPU was. The app previously ran at cpus 1.0 with 3 sync workers sharing that
+# single core, which showed up as cgroup throttling (12262 of 785906 periods,
+# ~33 ms of forced stall each) and turned normal requests into 7 s P99 spikes.
+#
+# These defaults describe production. Staging shares the same host and
+# overrides them downward in group_vars/staging/vars.yml.
+backend_app_cpu_limit: "2.0"
+backend_app_memory_limit: 1280M
+backend_app_cpu_reservation: "0.25"
+backend_app_memory_reservation: 512M
+
+# Postgres holds ~27 MiB — the dataset fits in the host page cache, so
+# shared_buffers is deliberately left at its default.
+backend_db_cpu_limit: "1.0"
+backend_db_memory_limit: 512M
+backend_db_cpu_reservation: "0.1"
+backend_db_memory_reservation: 128M
+
+# In-app purchase verification (server/apps/donations).
+#
+# Empty defaults only — the store identifiers are set per environment in
+# group_vars/<env>/vars.yml and the Play service account in vault.yml. They
+# exist here so env.j2 can test them without a definedness guard.
+#
+# All four are optional on the Django side. Left empty, env.j2 omits the line
+# and the matching client raises ImproperlyConfigured only when something
+# actually tries to verify a purchase.
+backend_google_play_package_name: ""
+backend_google_play_service_account_info: {}
+backend_apple_bundle_id: ""
+backend_apple_app_apple_id: ""
+
 # Directories
 backend_app_dir: "/opt/{{ backend_app_name }}"
 backend_shared_dir: "{{ backend_app_dir }}/shared"

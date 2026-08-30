@@ -3,9 +3,27 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Monitoring stack: Prometheus + Loki + Alloy + Grafana + Alertmanager
+# NOT THE DEPLOYED FILE. Ansible renders the monitoring stack from
+# roles/monitoring/templates/docker-compose.yml.j2; nothing in this repository
+# reads this file. It is kept as a local/standalone copy (relative volume
+# paths, published ports, ${VAR} substitution instead of Ansible variables),
+# so any change made here must be mirrored into that template or it has no
+# effect on the server.
+#
 # Requires external Docker network: docker network create guitar0-network
 # Requires .env file with: GRAFANA_ADMIN_PASSWORD, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 # DOCKER_GID: run `stat -c '%g' /var/run/docker.sock` on the host to get the value
+#
+# Resource limits: this stack shares one 4 vCPU / 8 GB host with both the
+# production and staging application stacks. Until 2026-08-08 nothing here was
+# capped while the application containers were, which inverted the priority —
+# a Prometheus TSDB compaction could crowd out the live service.
+#
+# Ceilings are sized from an actual `docker stats` snapshot. In it Prometheus
+# was the single largest CPU consumer on the box (21.94%) while the production
+# app sat at 0.02%, so its ceiling is deliberately the most generous of the
+# stack: throttle the scraper and metrics develop gaps exactly during the
+# incidents worth observing.
 
 name: guitar0-monitoring
 
@@ -31,6 +49,12 @@ services:
     networks:
       - monitoring
       - guitar0-network
+    # Observed 284.9 MiB / 21.94% CPU. Highest ceiling in the stack by design.
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 768M
 
   alertmanager:
     image: prom/alertmanager:v0.31.1
@@ -48,6 +72,12 @@ services:
       - "127.0.0.1:9093:9093"
     networks:
       - monitoring
+    # Observed 29.07 MiB / 0.38% CPU.
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 128M
 
   node-exporter:
     image: prom/node-exporter:v1.8.2
@@ -64,6 +94,12 @@ services:
       - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
     networks:
       - monitoring
+    # Observed 12.75 MiB / 0.00% CPU.
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 128M
 
   loki:
     image: grafana/loki:3.3.2
@@ -74,6 +110,12 @@ services:
       - loki_data:/loki
     networks:
       - monitoring
+    # Observed 110.8 MiB / 3.67% CPU.
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
 
   alloy:
     image: grafana/alloy:v1.5.1
@@ -86,6 +128,14 @@ services:
       - /etc/alloy/config.alloy
     networks:
       - monitoring
+    # Observed 346.4 MiB — the largest memory consumer in the stack. An OOM
+    # here silently stops log shipping to Loki, so the ceiling is deliberately
+    # loose relative to the measurement.
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 768M
     depends_on:
       - loki
 
@@ -105,6 +155,13 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
       - monitoring
+    # Observed 292.8 MiB / 3.37% CPU. Rendering a wide dashboard spikes well
+    # above the idle figure, so this is not sized at the measurement.
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 768M
     depends_on:
       - prometheus
       - loki

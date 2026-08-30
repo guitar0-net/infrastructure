@@ -27,6 +27,11 @@ services:
     networks:
       - monitoring
       - guitar0-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 768M
 
   alertmanager:
     image: prom/alertmanager:v0.31.1
@@ -39,6 +44,11 @@ services:
       - --storage.path=/alertmanager
     networks:
       - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 128M
 
   node-exporter:
     image: prom/node-exporter:v1.8.2
@@ -55,6 +65,11 @@ services:
       - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
     networks:
       - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 128M
 
   loki:
     image: grafana/loki:3.3.2
@@ -65,6 +80,11 @@ services:
       - loki_data:/loki
     networks:
       - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
 
   alloy:
     image: grafana/alloy:v1.5.1
@@ -77,6 +97,11 @@ services:
       - /etc/alloy/config.alloy
     networks:
       - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 768M
     depends_on:
       - loki
 
@@ -96,6 +121,11 @@ services:
       - {{ monitoring_dir }}/grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
       - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 768M
     depends_on:
       - prometheus
       - loki

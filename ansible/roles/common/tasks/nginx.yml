@@ -23,3 +23,10 @@
     dest: /etc/nginx/conf.d/rate-limits.conf
     mode: "0644"
   notify: Reload nginx
+
+# The `timing` log format and the `guitar0_cache` proxy cache zone used to live
+# here too, but only the backend vhost references them, and this role runs from
+# playbooks/setup.yml alone. A backend deploy that re-rendered the vhost without
+# setup.yml having run first would abort at `nginx -t` on `unknown log format
+# "timing"`. They now ship with the role that uses them —
+# roles/backend/tasks/nginx.yml — at the same conf.d paths.
