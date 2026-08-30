@@ -5,7 +5,7 @@
 .PHONY: help install lint ping setup \
         deploy-backend deploy-frontend deploy \
         rollback-backend rollback-frontend \
-        monitoring backup vault-edit
+        monitoring backup vault-edit sa-yaml
 
 SHELL := /bin/bash
 
@@ -73,3 +73,6 @@ backup: ## Backup backend database
 
 vault-edit: ## Edit secrets vault  (make vault-edit INVENTORY=production)
 	ansible-vault edit ansible/inventory/group_vars/$(INVENTORY)/vault.yml
+
+sa-yaml: ## Google service-account JSON -> vault YAML block  (make sa-yaml FILE=~/Downloads/sa.json)
+	@python3 scripts/sa-json-to-yaml.py $(FILE)
