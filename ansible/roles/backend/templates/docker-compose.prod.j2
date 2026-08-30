@@ -15,6 +15,19 @@ services:
       - "127.0.0.1:{{ backend_app_port }}:8000"
     env_file:
       - {{ backend_shared_dir }}/.env
+    environment:
+      # Shared store for prometheus_client's cross-worker metric values — see
+      # the bootstrap block at the top of config/gunicorn.py. Without it each
+      # gunicorn worker answers /metrics/ with only its own share of the
+      # traffic, and consecutive scrapes hitting different workers make every
+      # counter look like it keeps resetting.
+      PROMETHEUS_MULTIPROC_DIR: /run/prometheus
+    tmpfs:
+      # Backing store for the above: empty on every container start, so stale
+      # counters from a previous run cannot be summed into the new ones, and
+      # never touching the disk. Holds four 64 KiB mmap files per process, so
+      # roughly 1 MiB in steady state — the rest is headroom.
+      - /run/prometheus:size=64m,mode=1777
     volumes:
       - {{ backend_shared_dir }}/staticfiles:/app/staticfiles
       - {{ backend_shared_dir }}/media:/app/media
@@ -34,11 +47,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.0"
-          memory: 1024M
+          cpus: "{{ backend_app_cpu_limit }}"
+          memory: {{ backend_app_memory_limit }}
         reservations:
-          cpus: "0.25"
-          memory: 512M
+          cpus: "{{ backend_app_cpu_reservation }}"
+          memory: {{ backend_app_memory_reservation }}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/metrics/"]
       interval: 30s
@@ -57,6 +70,14 @@ services:
       POSTGRES_PASSWORD: {{ backend_db_password }}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: "{{ backend_db_cpu_limit }}"
+          memory: {{ backend_db_memory_limit }}
+        reservations:
+          cpus: "{{ backend_db_cpu_reservation }}"
+          memory: {{ backend_db_memory_reservation }}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U {{ backend_db_user }} -d {{ backend_db_name }}"]
       interval: 10s

@@ -5,18 +5,28 @@
 # Nginx vhost for {{ backend_app_name }} ({{ app_env }})
 # SSL will be added by: certbot --nginx {% for d in backend_nginx_domains %}-d {{ d.server_name }} {% endfor %}
 
+{%- macro security_headers(domain, indent) %}
+{% if domain.x_frame_options is defined %}
+{{ indent }}add_header X-Frame-Options "{{ domain.x_frame_options }}" always;
+{% endif %}
+{{ indent }}add_header X-Content-Type-Options "nosniff" always;
+{{ indent }}add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+{%- endmacro %}
 {% for domain in backend_nginx_domains %}
 server {
     listen 80;
     listen [::]:80;
     server_name {{ domain.server_name }};
 
+    # Per-vhost access log in the `timing` format (defined in
+    # conf.d/log-format.conf) instead of the inherited `combined` one. This is
+    # the only place that sees how long a request took end to end, including
+    # the wait in front of the gunicorn workers and the write-out to the
+    # client. Rotated by the stock /etc/logrotate.d/nginx glob.
+    access_log /var/log/nginx/{{ domain.server_name }}.timing.log timing;
+
     # Security headers
-{% if domain.x_frame_options is defined %}
-    add_header X-Frame-Options "{{ domain.x_frame_options }}" always;
-{% endif %}
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+{{ security_headers(domain, "    ") }}
 
     # Gzip
     gzip on;
@@ -31,6 +41,7 @@ server {
         alias {{ backend_shared_dir }}/staticfiles/;
         expires 30d;
         add_header Cache-Control "public, immutable";
+{{ security_headers(domain, "        ") }}
         access_log off;
     }
 
@@ -40,6 +51,7 @@ server {
         alias {{ backend_shared_dir }}/media/;
         expires 7d;
         add_header Cache-Control "public";
+{{ security_headers(domain, "        ") }}
         access_log off;
     }
 
@@ -68,6 +80,15 @@ server {
         proxy_connect_timeout 60s;
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
+{% endif %}
+{% if loc.cache | default(false) %}
+        # Only successful responses are cached — errors always hit the backend.
+        proxy_cache guitar0_cache;
+        proxy_cache_valid 200 {{ loc.cache_valid | default("60s") }};
+        proxy_cache_key "$scheme$request_method$host$request_uri";
+        proxy_cache_use_stale error timeout updating;
+        add_header X-Cache-Status $upstream_cache_status always;
+{{ security_headers(domain, "        ") }}
 {% endif %}
 {% endif %}
     }
