@@ -9,14 +9,24 @@
 bantime = {{ fail2ban_bantime }}
 findtime = {{ fail2ban_findtime }}
 maxretry = {{ fail2ban_maxretry }}
-backend = systemd
 banaction = ufw
+ignoreip = {{ fail2ban_ignoreip | join(' ') }}
+
+# `backend = systemd` here would apply to every jail below and silently void
+# their `logpath`: a systemd-backed jail reads the journal and never opens the
+# file. nginx daemonises and writes to its own error.log, so only startup
+# noise reaches the journal — the nginx jails would watch an empty stream and
+# report `Journal matches:` with zero hits no matter how full error.log is.
+# File-reading jails get `auto` from here; sshd asks for systemd explicitly.
+backend = auto
 
 [sshd]
 enabled = true
 port = ssh
 filter = sshd
-logpath = /var/log/auth.log
+# sshd logs through the journal, and /var/log/auth.log only exists while
+# rsyslog is installed — read the journal directly rather than depend on it.
+backend = systemd
 maxretry = 3
 bantime = 3600
 
@@ -34,6 +44,15 @@ logpath = {{ log_dir }}/nginx/error.log
 maxretry = 10
 findtime = 60
 bantime = 600
+
+[nginx-forbidden]
+enabled = true
+filter = nginx-forbidden
+port = http,https
+logpath = {{ log_dir }}/nginx/error.log
+maxretry = 15
+findtime = 300
+bantime = 3600
 
 [recidive]
 enabled = true
