@@ -48,7 +48,6 @@ backend_nginx_domains:
 # In-app purchase verification
 backend_google_play_package_name: com.andreykotlyar.guitar0
 backend_apple_bundle_id: com.andreykotlyar.guitar0
-backend_apple_app_apple_id: "0000000000"
 
 # --- Frontend ---
 frontend_app_port: 3001

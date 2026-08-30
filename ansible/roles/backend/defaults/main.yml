@@ -51,10 +51,10 @@ backend_db_memory_reservation: 128M
 # All four are optional on the Django side. Left empty, env.j2 omits the line
 # and the matching client raises ImproperlyConfigured only when something
 # actually tries to verify a purchase.
-backend_google_play_package_name: "com.andreykotlyar.guitar0"
+backend_google_play_package_name: ""
 backend_google_play_service_account_info: {}
-backend_apple_bundle_id: "com.andreykotlyar.guitar0"
-backend_apple_app_apple_id: "00000000000"
+backend_apple_bundle_id: ""
+backend_apple_app_apple_id: ""
 
 # Directories
 backend_app_dir: "/opt/{{ backend_app_name }}"
