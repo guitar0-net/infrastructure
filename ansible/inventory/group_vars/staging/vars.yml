@@ -32,6 +32,7 @@ backend_nginx_domains:
     x_frame_options: DENY
     serve_static: true
     serve_media: true
+    serve_videos: true
     locations:
       - path: /admin-guitar0/
         rate_limit: general_limit
