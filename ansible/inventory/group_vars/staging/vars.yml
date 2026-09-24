@@ -58,10 +58,6 @@ backend_nginx_domains:
         rate_limit: general_limit
         burst: 10
         allow_only: "{{ admin_allowed_networks }}"
-      - path: /markdownx/
-        rate_limit: general_limit
-        burst: 10
-        allow_only: "{{ admin_allowed_networks }}"
       - path: /
         return: "301 /admin-guitar0/"
 
