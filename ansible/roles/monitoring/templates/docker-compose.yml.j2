@@ -74,7 +74,9 @@ services:
   loki:
     image: grafana/loki:3.3.2
     restart: unless-stopped
-    command: -config.file=/etc/loki/config.yml
+    command:
+      - -config.file=/etc/loki/config.yml
+      - -log.level=warn
     volumes:
       - {{ monitoring_dir }}/loki/config.yml:/etc/loki/config.yml:ro
       - loki_data:/loki
