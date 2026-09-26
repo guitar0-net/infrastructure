@@ -23,3 +23,6 @@ fail2ban_ignoreip:
 
 # Log directory
 log_dir: /var/log
+
+docker_log_max_size: 20m
+docker_log_max_file: 3
