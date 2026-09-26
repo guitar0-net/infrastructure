@@ -11,6 +11,10 @@
   ansible.builtin.import_tasks: docker_daemon.yml
   tags: [docker]
 
+- name: Configure journald
+  ansible.builtin.import_tasks: journald.yml
+  tags: [journald]
+
 - name: Create deploy user and group
   ansible.builtin.import_tasks: user.yml
   tags: [user]
