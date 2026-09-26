@@ -17,6 +17,13 @@
       - alertmanager
     state: restarted
 
+- name: Restart loki
+  community.docker.docker_compose_v2:
+    project_src: "{{ monitoring_dir }}"
+    services:
+      - loki
+    state: restarted
+
 - name: Reload nginx
   ansible.builtin.systemd:
     name: nginx
