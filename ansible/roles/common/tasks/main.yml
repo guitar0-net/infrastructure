@@ -7,6 +7,10 @@
   ansible.builtin.import_tasks: packages.yml
   tags: [packages, docker]
 
+- name: Configure Docker daemon
+  ansible.builtin.import_tasks: docker_daemon.yml
+  tags: [docker]
+
 - name: Create deploy user and group
   ansible.builtin.import_tasks: user.yml
   tags: [user]
