@@ -175,3 +175,10 @@
           {{ 'Rolled back to ' ~ backend_docker_image ~ ':' ~ backend_rollback_tag
              if backend_rollback_version_file is succeeded
              else 'No previous version to roll back to.' }}
+
+- name: Prune unused Docker images
+  community.docker.docker_prune:
+    images: true
+    images_filters:
+      dangling: false
+      until: 168h
