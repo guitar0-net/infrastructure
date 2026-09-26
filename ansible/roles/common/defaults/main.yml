@@ -26,3 +26,6 @@ log_dir: /var/log
 
 docker_log_max_size: 20m
 docker_log_max_file: 3
+
+# systemd journal disk cap
+journald_system_max_use: 500M
