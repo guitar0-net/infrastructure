@@ -50,6 +50,9 @@ backend_nginx_domains:
 backend_google_play_package_name: com.andreykotlyar.guitar0
 backend_apple_bundle_id: com.andreykotlyar.guitar0
 
+# Google Sign-In (Web OAuth client)
+backend_google_client_id: 87817374852-2a11dsnfdbj2v5dou6h70n62ggh7ovcf.apps.googleusercontent.com
+
 # --- Frontend ---
 frontend_app_port: 3001
 frontend_api_url: api.guitar0.net

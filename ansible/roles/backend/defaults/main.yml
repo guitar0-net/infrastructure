@@ -56,6 +56,9 @@ backend_google_play_service_account_info: {}
 backend_apple_bundle_id: ""
 backend_apple_app_apple_id: ""
 
+# Google Sign-In (server/apps/accounts)
+backend_google_client_id: ""
+
 # Directories
 backend_app_dir: "/opt/{{ backend_app_name }}"
 backend_shared_dir: "{{ backend_app_dir }}/shared"
