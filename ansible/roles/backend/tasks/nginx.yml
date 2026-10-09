@@ -50,12 +50,35 @@
     mode: "0644"
   notify: Reload nginx
 
+- name: Deploy nginx scanner guard
+  ansible.builtin.copy:
+    content: |
+      location ~ "^/(?!api/|admin-guitar0/|static/|media/|videos/|\.well-known/acme-challenge/)" {
+          access_log off;
+          return 444;
+      }
+    dest: /etc/nginx/snippets/guitar0-scanner-guard.conf
+    mode: "0644"
+  notify: Reload nginx
+
 - name: Deploy backend nginx vhost config
   ansible.builtin.template:
     src: nginx-site.j2
     dest: "/etc/nginx/sites-available/{{ backend_app_name }}"
     mode: "0644"
     force: false
+  notify: Reload nginx
+
+- name: Include scanner guard in existing backend vhost
+  ansible.builtin.replace:
+    path: "/etc/nginx/sites-available/{{ backend_app_name }}"
+    regexp: '(\n([ \t]*){{ access_log_line }}\n)(?!\s*include snippets/guitar0-scanner-guard\.conf;)'
+    replace: '\g<1>\g<2>include snippets/guitar0-scanner-guard.conf;\n'
+  loop: "{{ backend_nginx_domains | selectattr('scanner_guard', 'defined') | selectattr('scanner_guard') | list }}"
+  loop_control:
+    label: "{{ item.server_name }}"
+  vars:
+    access_log_line: 'access_log /var/log/nginx/{{ item.server_name | regex_escape }}\.timing\.log timing;'
   notify: Reload nginx
 
 - name: Enable backend nginx site
