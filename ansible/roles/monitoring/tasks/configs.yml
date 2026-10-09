@@ -48,6 +48,7 @@
     owner: "{{ app_user }}"
     group: "{{ app_group }}"
     mode: "0644"
+  notify: Restart alloy
 
 - name: Copy Loki config
   ansible.builtin.copy:
