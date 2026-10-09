@@ -15,6 +15,7 @@ backend_db_docker_port: 5434
 backend_nginx_domains:
   - server_name: api.guitar0.net
     x_frame_options: DENY
+    scanner_guard: true
     serve_static: true
     serve_media: true
     serve_videos: true
@@ -23,12 +24,6 @@ backend_nginx_domains:
         rate_limit: general_limit
         allow_only:
           - 127.0.0.1
-      - path: /metrics/
-        return: "404"
-      - path: /health/
-        return: "404"
-      - path: /ready/
-        return: "404"
       - path: '~ "^/api/v1/lessons/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/?$"'
         rate_limit: api_limit
         cache: true
