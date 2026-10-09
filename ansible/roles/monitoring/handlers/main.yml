@@ -24,6 +24,13 @@
       - loki
     state: restarted
 
+- name: Restart alloy
+  community.docker.docker_compose_v2:
+    project_src: "{{ monitoring_dir }}"
+    services:
+      - alloy
+    state: restarted
+
 - name: Reload nginx
   ansible.builtin.systemd:
     name: nginx
